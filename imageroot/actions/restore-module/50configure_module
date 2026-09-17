@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 tebbi
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Re-run configure-module with the restored settings: write config env, publish
+# the two Traefik routes on the (possibly different) node, start GoPhish on the
+# restored gophish-data volume (config.json + database).
+
+import os
+
+import agent
+import agent.tasks
+
+env = os.environ
+data = {
+    "admin_host": env.get("GOPHISH_ADMIN_HOST", ""),
+    "phish_host": env.get("GOPHISH_PHISH_HOST", ""),
+    "contact_address": env.get("GOPHISH_CONTACT_ADDRESS", ""),
+    "http2https": env.get("TRAEFIK_ADMIN_HTTP2HTTPS", "True") == "True",
+}
+response = agent.tasks.run(agent_id=env["AGENT_ID"], action="configure-module", data=data)
+agent.assert_exp(response["exit_code"] == 0, "The configure-module subtask failed!")

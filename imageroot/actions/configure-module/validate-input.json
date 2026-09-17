@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Configure gophish",
+    "$id": "http://nethserver.org/json-schema/task/input/gophish/configure-module",
+    "description": "Configure the GoPhish module",
+    "examples": [
+        {
+            "admin_host": "gophish-admin.example.org",
+            "phish_host": "mail-check.example.org",
+            "contact_address": "security@example.org",
+            "lets_encrypt": true,
+            "http2https": true
+        }
+    ],
+    "type": "object",
+    "required": ["admin_host", "phish_host"],
+    "properties": {
+        "admin_host": {
+            "type": "string",
+            "title": "Admin host name",
+            "description": "FQDN of the GoPhish admin interface (web UI + REST API), published through Traefik.",
+            "format": "hostname",
+            "pattern": "\\."
+        },
+        "phish_host": {
+            "type": "string",
+            "title": "Phishing host name",
+            "description": "FQDN under which the phishing landing pages are served. Must differ from the admin host.",
+            "format": "hostname",
+            "pattern": "\\."
+        },
+        "contact_address": {
+            "type": "string",
+            "title": "Contact address",
+            "description": "Optional address shown to recipients who report a phishing e-mail. Free text (usually an e-mail address).",
+            "maxLength": 300
+        },
+        "lets_encrypt": {
+            "type": "boolean",
+            "title": "Request Let's Encrypt certificates",
+            "description": "Issue TLS certificates for both host names via Traefik."
+        },
+        "http2https": {
+            "type": "boolean",
+            "title": "Redirect HTTP to HTTPS"
+        }
+    }
+}

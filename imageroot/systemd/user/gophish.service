@@ -1,0 +1,55 @@
+#
+# Copyright (C) 2026 tebbi
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# GoPhish: one rootless container running ghcr.io/tebbiworld/gophish-app (built
+# by this module from the official GoPhish release and pinned through
+# org.nethserver.images -> ${GOPHISH_APP_IMAGE}).
+#
+# The single GoPhish process serves two HTTP servers, both plaintext inside the
+# container (TLS is terminated by Traefik):
+#   admin server  container 3333 -> published on 127.0.0.1:${ADMIN_PORT}
+#   phish server  container   80 -> published on 127.0.0.1:${PHISH_PORT}
+# Traefik reverse-proxies admin_host -> ADMIN_PORT and phish_host -> PHISH_PORT.
+#
+# config.json is (re)generated in the data volume by the container entrypoint
+# from the GOPHISH_* variables in state/gophish.env at every start. The
+# gophish-data volume (/var/lib/gophish) holds config.json and gophish.db.
+#
+# The container runs as its own container-root to bind port 80; under rootless
+# Podman this is the module's unprivileged host user.
+
+[Unit]
+Description=GoPhish phishing simulation server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+EnvironmentFile=%S/state/gophish.env
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStartSec=120
+TimeoutStopSec=60
+ExecStartPre=/bin/rm -f %t/gophish.pid %t/gophish.ctr-id
+ExecStart=/usr/bin/podman run \
+    --conmon-pidfile %t/gophish.pid \
+    --cidfile %t/gophish.ctr-id \
+    --cgroups=no-conmon \
+    --replace -d --name gophish \
+    --stop-timeout 30 \
+    --publish 127.0.0.1:${ADMIN_PORT}:3333 \
+    --publish 127.0.0.1:${PHISH_PORT}:80 \
+    --volume gophish-data:/var/lib/gophish \
+    --env-file %S/state/gophish.env \
+    ${GOPHISH_APP_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/gophish.ctr-id -t 30
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/gophish.ctr-id
+PIDFile=%t/gophish.pid
+Type=forking
+SyslogIdentifier=%u
+
+[Install]
+WantedBy=default.target

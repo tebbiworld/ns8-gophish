@@ -1,0 +1,77 @@
+======GoPhish======
+[[https://getgophish.com/|GoPhish]] is an open-source phishing-simulation framework for **authorised** security-awareness testing. This module builds GoPhish from the official upstream release and publishes its two servers — the admin interface and the phishing server — under two separate host names behind Traefik.
+
+<note warning>Use GoPhish only against recipients you are authorised to test. Running phishing campaigns against people without permission is illegal in most jurisdictions.</note>
+
+====Announcement and talks====
+The GoPhish app announcement TBA
+
+GoPhish is a community application from the [[ns8:tebbiworld_repository|tebbiworld]] repository. Documentation and source can be found on [[https://github.com/tebbiworld/ns8-gophish|Github]]
+
+=====What it does=====
+  * one rootless container running ''gophish-app'', built by the module from the official GoPhish release ZIP (no Docker Hub image)
+  * two Traefik routes, each with its own FQDN: **admin host** → admin server (web UI + REST API, container port 3333), **phishing host** → phishing server (landing pages, container port 80)
+  * TLS terminated by Traefik; both servers run plain HTTP inside the container (''use_tls=false''); ''trusted_origins'' is set to ''https://<admin_host>'' so the admin server accepts requests through the reverse proxy
+  * SQLite database (''gophish.db'') and ''config.json'' in a persistent volume, regenerated from the module parameters at every start
+  * NS8 backup of settings and the data volume; full restore
+
+=====Architecture=====
+
+^ Container ^ Image ^ Purpose ^
+| ''gophish'' | ''ghcr.io/tebbiworld/gophish-app:<module version>'' (built from the pinned GoPhish release) | one GoPhish process; admin 3333 and phishing 80 published on two loopback ports |
+
+^ Volume ^ Purpose ^ Backup ^
+| ''gophish-data'' | ''config.json'' and the SQLite database (users, campaigns, templates, landing pages, results) | yes |
+
+=====Requirements=====
+  * two FQDNs resolving to the node (admin and phishing), published through Traefik
+  * a Sending Profile with an SMTP relay you are allowed to use; SPF/DKIM/DMARC for the from-domain for deliverability
+
+=====Installation=====
+On the NethServer 8 cluster leader:
+
+<code bash>
+add-module ghcr.io/tebbiworld/gophish:latest 1
+</code>
+
+or from the Software Center after adding the [[ns8:tebbiworld_repository|tebbiworld repository]].
+
+=====Configuration=====
+Open the instance settings: **admin host name**, **phishing host name** (must differ), optional **contact address**, Let's Encrypt and HTTP→HTTPS. Save. Both host names are published through Traefik.
+
+====First login====
+GoPhish writes a temporary password for the user ''admin'' to its log on the first start. The settings page shows it while it is still the initial password, or read it from the node:
+
+<code bash>
+runagent -m gophish1 podman logs gophish 2>&1 | grep -i "Please login with the username admin"
+</code>
+
+Log in at ''%%https://<admin_host>/%%'' and change the password immediately.
+
+====Sending e-mail====
+GoPhish sends through a **Sending Profile** you create in the admin UI (SMTP host, port, from address, credentials). For deliverability, authorise the relay in **SPF**, sign with **DKIM** and align **DMARC** for the from-domain; otherwise the simulated mails are likely rejected or filtered.
+
+====Captured client IP behind Traefik====
+The phishing server records the real client IP, not the Traefik IP: GoPhish wraps the phishing handler in ''handlers.ProxyHeaders'', which rewrites the remote address from the ''X-Forwarded-For'' header Traefik sets (verified against the v0.12.1 source). Because that header is trusted, a recipient tampering with it can influence the recorded IP, so do not treat it as forensic evidence.
+
+=====Backup and restore=====
+The NS8 backup includes the settings and the ''gophish-data'' volume. A restore recreates the instance, republishes both Traefik routes on the target node and starts GoPhish on the restored volume.
+
+=====Updates=====
+The module pins the GoPhish release. A weekly GitHub Action checks the GoPhish git tags and rebuilds when a newer stable release is at least six weeks old. Upstream GoPhish has not tagged a release since v0.12.1 (September 2022).
+
+=====Licences and trademarks=====
+  * The module (ns8-gophish) is GPL-3.0-or-later.
+  * GoPhish is MIT-licensed, © the GoPhish authors. The module builds the unmodified upstream release; the GoPhish logo is used to identify the upstream project.
+  * This is an unofficial community module, not affiliated with the GoPhish project.
+
+=====Links=====
+  * [[https://github.com/tebbiworld/ns8-gophish|Module source and issues]]
+  * [[https://getgophish.com/|GoPhish]]
+  * [[https://docs.getgophish.com/|GoPhish documentation]]
+  * [[https://github.com/gophish/gophish|GoPhish source]]
+
+=====Disclaimer=====
+Community-maintained module without warranty; use at your own risk and only for authorised testing. Open an issue on GitHub for bugs and questions.
+
+{{tag>description:"GoPhish phishing-simulation server (self-built) with separate admin and phishing host names behind Traefik"}}

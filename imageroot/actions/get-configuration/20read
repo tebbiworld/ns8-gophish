@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 tebbi
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Return the stored settings plus live state: container running, the admin and
+# phishing URLs, whether the database has been initialised, and — best effort —
+# the initial admin password GoPhish logs once on first start (only useful
+# until the admin changes it; not recoverable after the log has rotated).
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+import agent
+
+env = os.environ
+admin_host = env.get("GOPHISH_ADMIN_HOST", "")
+phish_host = env.get("GOPHISH_PHISH_HOST", "")
+
+running = False
+db_initialized = False
+initial_password = ""
+version = ""
+try:
+    st = subprocess.run(["podman", "inspect", "gophish", "--format", "{{.State.Status}}"],
+                        capture_output=True, text=True, timeout=10).stdout.strip()
+    running = st == "running"
+except Exception:
+    pass
+
+if running:
+    try:
+        out = subprocess.run(["podman", "exec", "gophish", "sh", "-c",
+                              "test -f /var/lib/gophish/gophish.db && echo yes; printf '%s' \"$GOPHISH_VERSION\""],
+                             capture_output=True, text=True, timeout=10).stdout
+        db_initialized = out.startswith("yes")
+        version = out.replace("yes", "", 1).strip()
+    except Exception:
+        pass
+    try:
+        logs = subprocess.run(["podman", "logs", "gophish"], capture_output=True, text=True, timeout=15)
+        m = re.search(r"Please login with the username admin and the password ([0-9a-f]+)", logs.stdout + logs.stderr)
+        if m:
+            initial_password = m.group(1)
+    except Exception:
+        pass
+
+config = {
+    "admin_host": admin_host,
+    "phish_host": phish_host,
+    "contact_address": env.get("GOPHISH_CONTACT_ADDRESS", ""),
+    "http2https": env.get("TRAEFIK_ADMIN_HTTP2HTTPS", "True") == "True",
+    "lets_encrypt": agent.get_route(env["MODULE_ID"]).get("lets_encrypt", False),
+    "admin_url": f"https://{admin_host}/" if admin_host else "",
+    "phish_url": f"https://{phish_host}/" if phish_host else "",
+    "container_running": running,
+    "db_initialized": db_initialized,
+    "initial_password": initial_password,
+    "gophish_version": version,
+}
+json.dump(config, fp=sys.stdout)

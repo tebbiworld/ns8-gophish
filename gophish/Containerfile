@@ -1,0 +1,49 @@
+# Copyright (C) 2026 tebbi
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# GoPhish, built from the official upstream release ZIP (Linux x86_64). The
+# version is passed as a build argument by build-images.sh and pinned there.
+# No third-party image from Docker Hub is used for the application itself;
+# only the plain Debian base for the runtime.
+
+ARG GOPHISH_VERSION=v0.12.1
+
+FROM docker.io/library/debian:trixie-slim AS builder
+ARG GOPHISH_VERSION
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates curl unzip \
+    && rm -rf /var/lib/apt/lists/*
+# GOPHISH_VERSION may carry a leading "v" (the git tag form); strip it for the
+# release asset name, which is gophish-v<x.y.z>-linux-64bit.zip.
+RUN ver="${GOPHISH_VERSION#v}" \
+    && curl -fsSL -o /tmp/gophish.zip \
+        "https://github.com/gophish/gophish/releases/download/v${ver}/gophish-v${ver}-linux-64bit.zip" \
+    && mkdir -p /opt/gophish \
+    && unzip -q /tmp/gophish.zip -d /opt/gophish \
+    && rm -f /tmp/gophish.zip \
+    && chmod +x /opt/gophish/gophish \
+    && test -d /opt/gophish/db && test -d /opt/gophish/templates && test -d /opt/gophish/static
+
+FROM docker.io/library/debian:trixie-slim
+ARG GOPHISH_VERSION
+LABEL org.opencontainers.image.title="gophish" \
+      org.opencontainers.image.description="GoPhish phishing simulation server" \
+      org.opencontainers.image.source="https://github.com/tebbiworld/ns8-gophish" \
+      org.opencontainers.image.licenses="MIT"
+# jq builds config.json at container start; ca-certificates for outbound SMTP/TLS.
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates jq \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/lib/gophish
+COPY --from=builder /opt/gophish /opt/gophish
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENV GOPHISH_VERSION=${GOPHISH_VERSION} \
+    GOPHISH_DATA=/var/lib/gophish
+# The phishing server binds container port 80, so the process runs as container
+# root (uid 0). Under rootless Podman (org.nethserver.rootfull=0) this maps to
+# the module's unprivileged host user and holds no privilege on the node.
+WORKDIR /opt/gophish
+VOLUME /var/lib/gophish
+EXPOSE 3333 80
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

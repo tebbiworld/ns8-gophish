@@ -1,0 +1,22 @@
+{
+  "name": "GoPhish",
+  "description": {
+    "en": "GoPhish phishing simulation server (self-built from the official release) — separate admin and phishing host names behind Traefik, SQLite storage, for authorised security-awareness testing",
+    "de": "GoPhish-Phishing-Simulationsserver (selbst aus dem offiziellen Release gebaut) — getrennte Admin- und Phishing-Hostnamen hinter Traefik, SQLite-Speicher, für autorisierte Security-Awareness-Tests"
+  },
+  "categories": [
+    "security"
+  ],
+  "authors": [
+    {
+      "name": "tebbi",
+      "email": "info@ebbinghaus.world"
+    }
+  ],
+  "docs": {
+    "documentation_url": "https://docs.getgophish.com/",
+    "bug_url": "https://github.com/tebbiworld/ns8-gophish/issues",
+    "code_url": "https://github.com/tebbiworld/ns8-gophish"
+  },
+  "source": "ghcr.io/tebbiworld/gophish"
+}
