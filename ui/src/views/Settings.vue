@@ -70,8 +70,7 @@
 
             <h4 class="section">{{ $t("settings.phish_section") }}</h4>
             <p v-if="phish_target" class="target-lead">
-              {{ $t("settings.phish_target_ref") }}
-              <br /><code class="target-code">{{ phish_target }}</code>
+              {{ $t("settings.phish_target_ref") }} <code class="target-code">{{ phish_target }}</code>
             </p>
             <cv-text-input :label="''" v-model.trim="phish_host" :placeholder="$t('settings.phish_host_placeholder')" :helper-text="$t('settings.phish_host_helper')" :disabled="busy" :invalid-message="$t(error.phish_host)" ref="phish_host" class="field"></cv-text-input>
 
@@ -257,7 +256,7 @@ export default {
 .toggle { margin-top: $spacing-06; }
 .info-tile { margin-top: $spacing-06; }
 .links { margin-top: $spacing-04; }
-.target-lead { margin-top: $spacing-03; margin-bottom: $spacing-05; font-size: .875rem; line-height: 1.4; }
-.target-code { user-select: all; font-weight: 600; font-size: 1rem; }
+.target-lead { margin-top: $spacing-03; margin-bottom: $spacing-06; font-size: .875rem; line-height: 1.5; }
+.target-code { user-select: all; font-weight: 600; white-space: nowrap; }
 .section { margin-top: $spacing-07; margin-bottom: $spacing-03; }
 </style>
