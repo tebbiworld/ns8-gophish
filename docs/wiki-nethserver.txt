@@ -18,7 +18,7 @@ GoPhish is a community application from the [[ns8:tebbiworld_repository|tebbiwor
 =====Architecture=====
 
 ^ Container ^ Image ^ Purpose ^
-| ''gophish'' | ''ghcr.io/tebbiworld/gophish-app:<module version>'' (built from the pinned GoPhish release) | one GoPhish process; admin 3333 and phishing 80 published on two loopback ports |
+| ''gophish'' | ''%%ghcr.io/tebbiworld/gophish-app:<module version>%%'' (built from the pinned GoPhish release) | one GoPhish process; admin 3333 and phishing 80 published on two loopback ports |
 
 ^ Volume ^ Purpose ^ Backup ^
 | ''gophish-data'' | ''config.json'' and the SQLite database (users, campaigns, templates, landing pages, results) | yes |
