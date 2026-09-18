@@ -74,4 +74,9 @@ The module pins the GoPhish release. A weekly GitHub Action checks the GoPhish g
 =====Disclaimer=====
 Community-maintained module without warranty; use at your own risk and only for authorised testing. Open an issue on GitHub for bugs and questions.
 
+{{tag>application}}
+{{tag>category:Security}}
+{{tag>status:Alpha}}
+{{tag>certlevel:1}}
+{{tag>repo:tebbiworld}}
 {{tag>description:"GoPhish phishing-simulation server (self-built) with separate admin and phishing host names behind Traefik"}}
