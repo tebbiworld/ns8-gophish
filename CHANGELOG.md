@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 — 2026-09-18
+
+- Fix the update path: applying an update now restarts the container so it
+  actually runs the new image. In 1.1.0 the update hook delegated the restart
+  to configure-module, which only restarts on a configuration change, so after
+  an update the module kept running the previous image until the next manual
+  restart or reboot. The update hook now forces the restart.
+
 ## 1.1.0 — 2026-09-18
 
 - **Fix admin login "Forbidden - referer invalid" behind the proxy.** GoPhish

@@ -41,10 +41,14 @@ data = {
     "http2https": env.get("TRAEFIK_ADMIN_HTTP2HTTPS", "True") == "True",
 }
 
+os.system("systemctl --user daemon-reload")
 if data["admin_host"]:
+    # Re-point routes / re-seed the bind on the (possibly new) node.
     response = agent.tasks.run(agent_id=env["AGENT_ID"], action="configure-module", data=data)
     agent.assert_exp(response["exit_code"] == 0, "configure-module during update failed")
-else:
-    # Not configured yet: just reload the unit and restart if it is enabled.
-    os.system("systemctl --user daemon-reload")
-    os.system("systemctl --user try-restart gophish.service")
+
+# An update always changes GOPHISH_APP_IMAGE, and configure-module only restarts
+# on a config change, so force the container onto the new image here. (Enable in
+# case this is the first start.)
+os.system("systemctl --user enable gophish.service")
+os.system("systemctl --user restart gophish.service")
