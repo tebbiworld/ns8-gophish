@@ -8,6 +8,13 @@
 # Persist the settings in state/environment and write state/gophish.env, the
 # env file the container reads. The container entrypoint turns these variables
 # into config.json inside the data volume at every start.
+#
+# Only some settings affect the container: the admin host name (trusted origin
+# for the admin CSRF check), the contact address, and the phish bind address
+# (the node WireGuard IP the phishing port is published on). The phish host name
+# does NOT reach the container -- it is only a Traefik route matcher -- so a
+# change to it must not force a restart. We record whether a container-relevant
+# value changed in .needs-restart, which 80start_services reads.
 
 import json
 import os
@@ -15,16 +22,38 @@ import sys
 
 import agent
 
+
+def vpn_ip():
+    try:
+        rdb = agent.redis_connect(use_replica=True)
+        ip = rdb.hget(f"node/{os.environ['NODE_ID']}/vpn", "ip_address")
+        if ip:
+            return ip
+    except Exception:
+        pass
+    return "127.0.0.1"
+
+
 data = json.load(sys.stdin)
 
 admin_host = (data["admin_host"]).strip().lower()
-phish_host = (data["phish_host"]).strip().lower()
+phish_host = (data.get("phish_host") or "").strip().lower()
 contact = (data.get("contact_address") or "").strip()
+phish_bind = vpn_ip()
+
+# container-relevant values as they are now, before we overwrite them
+before = (
+    os.environ.get("GOPHISH_ADMIN_HOST", ""),
+    os.environ.get("GOPHISH_CONTACT_ADDRESS", ""),
+    os.environ.get("GOPHISH_PHISH_BIND", ""),
+)
+after = (admin_host, contact, phish_bind)
 
 agent.mset_env({
     "GOPHISH_ADMIN_HOST": admin_host,
     "GOPHISH_PHISH_HOST": phish_host,
     "GOPHISH_CONTACT_ADDRESS": contact,
+    "GOPHISH_PHISH_BIND": phish_bind,
     "TRAEFIK_ADMIN_HTTP2HTTPS": "True" if data.get("http2https", True) else "False",
 })
 
@@ -39,3 +68,12 @@ lines = [
 with open("gophish.env.tmp", "w") as fp:
     fp.write("\n".join(lines) + "\n")
 os.replace("gophish.env.tmp", "gophish.env")
+
+# Signal a restart only when the container actually cares about the change or
+# when it is not running yet (first configure). Phish host / route changes fall
+# through without a restart.
+running = os.system("systemctl --user is-active --quiet gophish.service") == 0
+if before != after or not running:
+    open(".needs-restart", "w").close()
+elif os.path.exists(".needs-restart"):
+    os.remove(".needs-restart")

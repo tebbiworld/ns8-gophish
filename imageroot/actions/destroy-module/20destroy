@@ -5,8 +5,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-# Remove both Traefik routes opened by configure-module (only if they were
-# created: deleting an unknown route makes the traefik action fail).
+# Remove the Traefik routes this module created. The admin route is tracked by
+# .traefik-routes; the phish route only exists when the module managed it
+# (.phish-route). A phish route the admin created by hand is theirs to remove.
+# Deleting a route that does not exist makes the traefik action fail, so each
+# deletion is guarded by its marker.
 
 import json
 import os
@@ -17,12 +20,18 @@ import agent.tasks
 
 json.load(sys.stdin)
 
+module_id = os.environ["MODULE_ID"]
+to_delete = []
 if os.path.exists(".traefik-routes"):
-    module_id = os.environ["MODULE_ID"]
+    to_delete.append(module_id)
+if os.path.exists(".phish-route"):
+    to_delete.append(module_id + "-phish")
+
+if to_delete:
     traefik_id = agent.resolve_agent_id("traefik@node")
     if traefik_id is None:
         sys.exit(2)
-    for instance in (module_id, module_id + "-phish"):
+    for instance in to_delete:
         response = agent.tasks.run(
             agent_id=traefik_id,
             action="delete-route",

@@ -7,15 +7,17 @@ framework, for **authorised** security-awareness testing of your own users.
 - Built by the module from the official GoPhish release (`build-images.sh`
   downloads the pinned `gophish-vX.Y.Z-linux-64bit.zip`); no third-party
   image from Docker Hub
-- Two separate Traefik routes, each with its own FQDN:
-  - **admin host** → admin server (web UI + REST API, container port 3333)
-  - **phishing host** → phishing server (landing pages, container port 80)
+- The **admin server** (web UI + REST API, container port 3333) always gets a
+  module-managed Traefik route under its own FQDN
+- The **phishing server** (landing pages, container port 80) can be routed two
+  ways: give it an FQDN and the module makes its route, or leave the FQDN empty
+  and route it yourself in Traefik under one or more FQDNs (see below)
 - TLS terminated by Traefik; both servers run plain HTTP inside the container
   (`use_tls=false`), and `trusted_origins` is set to `https://<admin_host>` so
   the admin server's origin check passes behind the reverse proxy
 - SQLite storage (`gophish.db`) and `config.json` in a rootless Podman volume,
   so campaigns and accounts survive restarts and updates
-- Settings: admin host, phishing host, optional contact address
+- Settings: admin host, optional phishing host, optional contact address
 
 > Use GoPhish only against recipients you are authorised to test. Running
 > phishing campaigns against people without permission is illegal in most
@@ -36,13 +38,30 @@ Open the instance settings and set:
 | Parameter | Meaning |
 | --- | --- |
 | Admin host name | FQDN of the admin UI / REST API (e.g. `gophish-admin.example.org`) |
-| Phishing host name | FQDN serving the landing pages (e.g. `mail-check.example.org`); must differ from the admin host |
+| Phishing host name | Optional. FQDN serving the landing pages (e.g. `mail-check.example.org`); must differ from the admin host. Leave empty to route the phishing port yourself (see *Routing the phishing server yourself*) |
 | Contact address | Optional, shown to recipients who report a simulated mail |
 | Let's Encrypt | Issue TLS certificates for both host names |
 | HTTP→HTTPS | Redirect plain HTTP to HTTPS |
 
-Both host names must resolve to the node and are published through Traefik.
+The admin host must resolve to the node and is published through Traefik.
 Use a neutral-looking phishing host name; keep the admin host private.
+
+### Routing the phishing server yourself
+
+Leave the phishing host name empty when you want to serve the landing pages
+under several domains, or when the module runs on a node that is not the
+Internet-facing one. The module then publishes the phishing port on the node's
+WireGuard IP and the Settings page shows the target, e.g.
+`http://10.5.5.1:20012`.
+
+Create one or more routes in Traefik pointing at that target, each with its own
+host name and Let's Encrypt certificate. Same-node and cross-node both work: the
+port is reachable from any node's Traefik over the trusted cluster mesh
+(`10.5.5.0/24`), but never on the public interface. GoPhish tells the campaigns
+apart by the `rid` in the link, not by the host name, so every domain you route
+serves every campaign; you pick the domain per campaign in the sending URL.
+
+Changing or clearing the phishing host name never restarts the container.
 
 ## First login
 

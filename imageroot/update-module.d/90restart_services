@@ -1,12 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env python3
 #
 # Copyright (C) 2026 tebbi
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # The core's update-module action extracts the new image but does not restart
-# the module's units, so a changed unit file or a newly pinned GoPhish image
-# would only take effect at the next reboot.
-set -e
-exec 1>&2
-systemctl --user daemon-reload
-systemctl --user restart gophish.service
+# the module's units. Since 1.1.0 the phishing port is published on the node
+# WireGuard IP (GOPHISH_PHISH_BIND). An instance created before 1.1.0 has no
+# such variable and its phish route still targets loopback, so we seed the bind
+# address and re-run configure-module with the stored settings: that re-points
+# the phish route to the WireGuard IP (when the module manages it) and restarts
+# the container once with the new unit / pinned image.
+
+import os
+import sys
+
+import agent
+import agent.tasks
+
+env = os.environ
+
+
+def vpn_ip():
+    try:
+        rdb = agent.redis_connect(use_replica=True)
+        ip = rdb.hget(f"node/{env['NODE_ID']}/vpn", "ip_address")
+        if ip:
+            return ip
+    except Exception:
+        pass
+    return "127.0.0.1"
+
+
+if not env.get("GOPHISH_PHISH_BIND"):
+    agent.set_env("GOPHISH_PHISH_BIND", vpn_ip())
+
+data = {
+    "admin_host": env.get("GOPHISH_ADMIN_HOST", ""),
+    "phish_host": env.get("GOPHISH_PHISH_HOST", ""),
+    "contact_address": env.get("GOPHISH_CONTACT_ADDRESS", ""),
+    "http2https": env.get("TRAEFIK_ADMIN_HTTP2HTTPS", "True") == "True",
+}
+
+if data["admin_host"]:
+    response = agent.tasks.run(agent_id=env["AGENT_ID"], action="configure-module", data=data)
+    agent.assert_exp(response["exit_code"] == 0, "configure-module during update failed")
+else:
+    # Not configured yet: just reload the unit and restart if it is enabled.
+    os.system("systemctl --user daemon-reload")
+    os.system("systemctl --user try-restart gophish.service")

@@ -5,7 +5,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+# Restart the container only when a container-relevant setting changed (see
+# 10configure_environment_vars, which drops a .needs-restart marker) or when it
+# is not running. A pure phish host / route change leaves the container alone.
+
+import os
 import subprocess
 
 subprocess.run(["systemctl", "--user", "enable", "gophish.service"], check=True)
-subprocess.run(["systemctl", "--user", "restart", "gophish.service"], check=True)
+
+active = subprocess.run(["systemctl", "--user", "is-active", "--quiet", "gophish.service"]).returncode == 0
+if os.path.exists(".needs-restart") or not active:
+    subprocess.run(["systemctl", "--user", "restart", "gophish.service"], check=True)
+    if os.path.exists(".needs-restart"):
+        os.remove(".needs-restart")

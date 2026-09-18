@@ -21,6 +21,8 @@ import agent
 env = os.environ
 admin_host = env.get("GOPHISH_ADMIN_HOST", "")
 phish_host = env.get("GOPHISH_PHISH_HOST", "")
+phish_bind = env.get("GOPHISH_PHISH_BIND", "127.0.0.1")
+phish_port = env.get("PHISH_PORT", "")
 
 running = False
 db_initialized = False
@@ -58,6 +60,11 @@ config = {
     "lets_encrypt": agent.get_route(env["MODULE_ID"]).get("lets_encrypt", False),
     "admin_url": f"https://{admin_host}/" if admin_host else "",
     "phish_url": f"https://{phish_host}/" if phish_host else "",
+    # When phish_host is empty the admin routes the phishing port by hand; this
+    # is the target such a manual Traefik route (this node or another) points at.
+    "phish_managed": bool(phish_host),
+    "phish_port": phish_port,
+    "phish_target": f"http://{phish_bind}:{phish_port}" if phish_port else "",
     "container_running": running,
     "db_initialized": db_initialized,
     "initial_password": initial_password,

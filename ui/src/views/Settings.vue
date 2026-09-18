@@ -29,6 +29,14 @@
           <div v-if="!loading.getConfiguration && phish_url" class="links">
             <a :href="phish_url" target="_blank" rel="noopener">{{ $t("settings.open_phish") }}: {{ phish_url }}</a>
           </div>
+          <NsInlineNotification
+            v-if="!loading.getConfiguration && !phish_managed && phish_target"
+            kind="info"
+            :title="$t('settings.phish_manual_title')"
+            :description="$t('settings.phish_manual_desc', { target: phish_target })"
+            :showCloseButton="false"
+            class="info-tile"
+          />
 
           <!-- First-login credentials -->
           <NsInlineNotification
@@ -99,6 +107,9 @@ export default {
       http2https: true,
       admin_url: "",
       phish_url: "",
+      phish_managed: true,
+      phish_port: "",
+      phish_target: "",
       container_running: false,
       db_initialized: false,
       initial_password: "",
@@ -159,6 +170,9 @@ export default {
       this.http2https = c.http2https !== false;
       this.admin_url = c.admin_url || "";
       this.phish_url = c.phish_url || "";
+      this.phish_managed = c.phish_managed !== false;
+      this.phish_port = c.phish_port || "";
+      this.phish_target = c.phish_target || "";
       this.container_running = !!c.container_running;
       this.db_initialized = !!c.db_initialized;
       this.initial_password = c.initial_password || "";
@@ -174,8 +188,8 @@ export default {
       };
       const isHost = (h) => /\./.test(h) && /^[A-Za-z0-9.-]+$/.test(h);
       if (!isHost(this.admin_host)) fail("admin_host", "settings.invalid_host");
-      if (!isHost(this.phish_host)) fail("phish_host", "settings.invalid_host");
-      if (this.admin_host && this.admin_host.toLowerCase() === this.phish_host.toLowerCase()) fail("phish_host", "settings.hosts_must_differ");
+      if (this.phish_host && !isHost(this.phish_host)) fail("phish_host", "settings.invalid_host");
+      if (this.phish_host && this.admin_host && this.admin_host.toLowerCase() === this.phish_host.toLowerCase()) fail("phish_host", "settings.hosts_must_differ");
       return ok;
     },
     configureModuleValidationFailed(validationErrors) {

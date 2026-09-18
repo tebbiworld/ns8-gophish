@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.0 — 2026-09-18
+
+- The **phishing host name is now optional**. Leave it empty and the module no
+  longer creates a Traefik route for the phishing server; instead it publishes
+  the phishing port on the node's WireGuard IP and shows the target
+  `http://<wg-ip>:<phish-port>`. You then create one or more Traefik routes for
+  it by hand, each with its own FQDN and Let's Encrypt certificate, so several
+  landing-page domains can share the one phishing server. GoPhish tells the
+  campaigns apart by the link (`rid`), not the host name. This also fits
+  multi-node clusters, where a module not on the exposed node must be routed by
+  hand anyway.
+- Changing the phishing host name (or clearing it) **no longer restarts the
+  container**: the phishing host is only a route matcher and never reaches the
+  container. The container is restarted only when a value it actually reads
+  changes (admin host, contact address, or the publish address).
+- The admin server is unchanged: it keeps its required FQDN, its module-managed
+  route and its `trusted_origins` CSRF setting.
+- On update, an instance created before 1.1.0 has its phishing port re-published
+  on the WireGuard IP and its managed route re-pointed automatically.
+
 ## 1.0.0 — 2026-09-17
 
 - Initial release: GoPhish v0.12.1 built server-side from the official release

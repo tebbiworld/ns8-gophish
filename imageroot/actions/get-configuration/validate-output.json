@@ -5,16 +5,47 @@
     "description": "Get GoPhish configuration",
     "type": "object",
     "properties": {
-        "admin_host": { "type": "string" },
-        "phish_host": { "type": "string" },
-        "contact_address": { "type": "string" },
-        "http2https": { "type": "boolean" },
-        "lets_encrypt": { "type": "boolean" },
-        "admin_url": { "type": "string" },
-        "phish_url": { "type": "string" },
-        "container_running": { "type": "boolean" },
-        "db_initialized": { "type": "boolean" },
-        "initial_password": { "type": "string" },
-        "gophish_version": { "type": "string" }
+        "admin_host": {
+            "type": "string"
+        },
+        "phish_host": {
+            "type": "string"
+        },
+        "contact_address": {
+            "type": "string"
+        },
+        "http2https": {
+            "type": "boolean"
+        },
+        "lets_encrypt": {
+            "type": "boolean"
+        },
+        "admin_url": {
+            "type": "string"
+        },
+        "phish_url": {
+            "type": "string"
+        },
+        "container_running": {
+            "type": "boolean"
+        },
+        "db_initialized": {
+            "type": "boolean"
+        },
+        "initial_password": {
+            "type": "string"
+        },
+        "gophish_version": {
+            "type": "string"
+        },
+        "phish_managed": {
+            "type": "boolean"
+        },
+        "phish_port": {
+            "type": "string"
+        },
+        "phish_target": {
+            "type": "string"
+        }
     }
 }

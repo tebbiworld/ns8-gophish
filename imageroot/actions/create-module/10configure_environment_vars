@@ -6,12 +6,26 @@
 #
 
 # Seed the environment for a fresh instance: reserve the two TCP ports Traefik
-# reverse-proxies to (first = admin server 3333, second = phishing server 80).
-# Everything else is applied by the first configure-module run.
+# reverse-proxies to (first = admin server 3333, second = phishing server 80),
+# and record the node's WireGuard IP as the bind address for the phish port so
+# the phishing server is reachable cluster-wide but never on the public
+# interface. configure-module refreshes GOPHISH_PHISH_BIND on every run.
 
 import os
 
 import agent
+
+
+def vpn_ip():
+    try:
+        rdb = agent.redis_connect(use_replica=True)
+        ip = rdb.hget(f"node/{os.environ['NODE_ID']}/vpn", "ip_address")
+        if ip:
+            return ip
+    except Exception:
+        pass
+    return "127.0.0.1"
+
 
 tcp_ports = [p.strip() for p in os.environ.get("TCP_PORTS", "").split(",") if p.strip()]
 admin_port = tcp_ports[0] if len(tcp_ports) > 0 else "3333"
@@ -20,6 +34,7 @@ phish_port = tcp_ports[1] if len(tcp_ports) > 1 else "8080"
 agent.mset_env({
     "ADMIN_PORT": admin_port,
     "PHISH_PORT": phish_port,
+    "GOPHISH_PHISH_BIND": vpn_ip(),
     "GOPHISH_ADMIN_HOST": "",
     "GOPHISH_PHISH_HOST": "",
     "GOPHISH_CONTACT_ADDRESS": "",

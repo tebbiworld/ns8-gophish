@@ -5,29 +5,36 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-# Publish two independent Traefik routes for the one GoPhish instance:
-#   instance <module_id>        admin_host  -> 127.0.0.1:${ADMIN_PORT} (admin 3333)
-#   instance <module_id>-phish  phish_host  -> 127.0.0.1:${PHISH_PORT} (phish 80)
-# Traefik terminates TLS for both; inside the container both servers are plain
-# HTTP (use_tls=false). A marker records that the routes exist so destroy-module
-# only tries to delete them when they were created.
+# Admin route (always): instance <module_id>, admin_host -> 127.0.0.1:ADMIN_PORT.
+# Phish route (optional): instance <module_id>-phish, phish_host -> the phishing
+# port on the node WireGuard IP. It is created only when a phish host name is
+# given. When the field is left empty the admin routes the phishing port by hand
+# in Traefik (any number of FQDNs, each with its own certificate), so we make
+# sure no stale module-managed phish route is left behind.
+#
+# Markers: .traefik-routes = the admin route exists; .phish-route = the module
+# manages the phish route. destroy-module reads both.
 
 import json
 import os
 import sys
 
 import agent
+import agent.tasks
 
 data = json.load(sys.stdin)
 env = os.environ
 module_id = env["MODULE_ID"]
+phish_instance = module_id + "-phish"
 h2hs = data.get("http2https", True)
+phish_host = (data.get("phish_host") or "").strip().lower()
+phish_bind = env.get("GOPHISH_PHISH_BIND", "127.0.0.1")
 
 
-def make_route(instance, host, port):
+def make_route(instance, host, url):
     route = {
         "instance": instance,
-        "url": "http://127.0.0.1:" + str(port),
+        "url": url,
         "host": host,
         "http2https": h2hs,
         "lets_encrypt_check": True,
@@ -38,7 +45,20 @@ def make_route(instance, host, port):
     return route
 
 
-agent.set_route(make_route(module_id, data["admin_host"].strip().lower(), env["ADMIN_PORT"]))
-agent.set_route(make_route(module_id + "-phish", data["phish_host"].strip().lower(), env["PHISH_PORT"]))
+# Admin route: reverse-proxied on the same node via loopback.
+agent.set_route(make_route(module_id, data["admin_host"].strip().lower(),
+                           "http://127.0.0.1:" + str(env["ADMIN_PORT"])))
+open(".traefik-routes", "w").close()
 
-open(".traefik-routes", "w").close()  # remembered for destroy-module
+if phish_host:
+    agent.set_route(make_route(phish_instance, phish_host,
+                               f"http://{phish_bind}:{env['PHISH_PORT']}"))
+    open(".phish-route", "w").close()
+else:
+    # No module-managed phish route wanted: remove one if it exists.
+    if os.path.exists(".phish-route"):
+        traefik_id = agent.resolve_agent_id("traefik@node")
+        if traefik_id is not None:
+            agent.tasks.run(agent_id=traefik_id, action="delete-route",
+                            data={"instance": phish_instance})
+        os.remove(".phish-route")

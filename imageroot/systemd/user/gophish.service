@@ -10,8 +10,15 @@
 # The single GoPhish process serves two HTTP servers, both plaintext inside the
 # container (TLS is terminated by Traefik):
 #   admin server  container 3333 -> published on 127.0.0.1:${ADMIN_PORT}
-#   phish server  container   80 -> published on 127.0.0.1:${PHISH_PORT}
-# Traefik reverse-proxies admin_host -> ADMIN_PORT and phish_host -> PHISH_PORT.
+#   phish server  container   80 -> published on ${GOPHISH_PHISH_BIND}:${PHISH_PORT}
+# The admin server is always reverse-proxied by the module's own Traefik route
+# (admin_host -> ADMIN_PORT). The phish server is published on the node's
+# WireGuard IP (${GOPHISH_PHISH_BIND}); it is reachable from this node's Traefik
+# (host network) and, over the trusted cluster mesh 10.5.5.0/24, from any other
+# node's Traefik, but never on the public interface. Its route may be created by
+# the module (when a phish host name is set) or by the admin by hand (one or more
+# FQDNs, each with its own certificate), so several landing-page domains can share
+# the one phish port without a module restart.
 #
 # config.json is (re)generated in the data volume by the container entrypoint
 # from the GOPHISH_* variables in state/gophish.env at every start. The
@@ -41,7 +48,7 @@ ExecStart=/usr/bin/podman run \
     --replace -d --name gophish \
     --stop-timeout 30 \
     --publish 127.0.0.1:${ADMIN_PORT}:3333 \
-    --publish 127.0.0.1:${PHISH_PORT}:80 \
+    --publish ${GOPHISH_PHISH_BIND}:${PHISH_PORT}:80 \
     --volume gophish-data:/var/lib/gophish \
     --env-file %S/state/gophish.env \
     ${GOPHISH_APP_IMAGE}

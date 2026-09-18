@@ -38,7 +38,7 @@
         "admin_host_helper": "FQDN der Admin-Oberfläche (Web-UI und REST-API). Über Traefik veröffentlicht, TLS wird von Traefik terminiert.",
         "phish_host": "Phishing-Hostname",
         "phish_host_placeholder": "mail-check.example.org",
-        "phish_host_helper": "FQDN, unter dem die Phishing-Landing-Pages ausgeliefert werden. Muss sich vom Admin-Host unterscheiden; verwende einen neutral wirkenden Namen.",
+        "phish_host_helper": "Optional. FQDN, unter dem das Modul die Phishing-Landing-Pages über eine eigene Traefik-Route veröffentlicht. Leer lassen, um den Phishing-Port selbst in Traefik zu routen, mit einem oder mehreren FQDN, die je ein eigenes Zertifikat erhalten. Muss sich vom Admin-Host unterscheiden.",
         "lets_encrypt": "Let's-Encrypt-Zertifikate",
         "http2https": "Weiterleitung HTTP zu HTTPS",
         "options_section": "Optionen",
@@ -47,7 +47,9 @@
         "contact_address_helper": "Optional. Wird Empfängern angezeigt, die eine simulierte Phishing-Mail melden.",
         "invalid_host": "Gültigen vollqualifizierten Domainnamen eingeben",
         "hosts_must_differ": "Der Phishing-Host muss sich vom Admin-Host unterscheiden",
-        "domain_already_used_in_traefik": "Hostname wird bereits von einer anderen Anwendung verwendet"
+        "domain_already_used_in_traefik": "Hostname wird bereits von einer anderen Anwendung verwendet",
+        "phish_manual_title": "Phishing-Route legst du selbst an",
+        "phish_manual_desc": "Es ist kein Phishing-Hostname gesetzt, das Modul veröffentlicht dafür keine Route. Lege in Traefik eine oder mehrere Routen auf {target} an, jede mit eigenem Hostnamen und eigenem Let's-Encrypt-Zertifikat. GoPhish unterscheidet die Kampagnen am Link, nicht am Hostnamen, daher können mehrere Landing-Page-Domains dasselbe Ziel nutzen."
     },
     "about": {
         "title": "Über"

@@ -13,7 +13,9 @@
         }
     ],
     "type": "object",
-    "required": ["admin_host", "phish_host"],
+    "required": [
+        "admin_host"
+    ],
     "properties": {
         "admin_host": {
             "type": "string",
@@ -25,9 +27,8 @@
         "phish_host": {
             "type": "string",
             "title": "Phishing host name",
-            "description": "FQDN under which the phishing landing pages are served. Must differ from the admin host.",
-            "format": "hostname",
-            "pattern": "\\."
+            "description": "Optional FQDN under which the module publishes the phishing landing pages through its own Traefik route. Leave empty to route the phishing port yourself in Traefik (one or more FQDNs, each with its own certificate). Must differ from the admin host.",
+            "pattern": "^$|^[A-Za-z0-9._-]+\\.[A-Za-z0-9._-]+$"
         },
         "contact_address": {
             "type": "string",
