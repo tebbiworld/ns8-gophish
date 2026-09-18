@@ -49,7 +49,8 @@
         "hosts_must_differ": "Der Phishing-Host muss sich vom Admin-Host unterscheiden",
         "domain_already_used_in_traefik": "Hostname wird bereits von einer anderen Anwendung verwendet",
         "phish_manual_title": "Phishing-Route legst du selbst an",
-        "phish_manual_desc": "Es ist kein Phishing-Hostname gesetzt, das Modul veröffentlicht dafür keine Route. Lege in Traefik eine oder mehrere Routen auf {target} an, jede mit eigenem Hostnamen und eigenem Let's-Encrypt-Zertifikat. GoPhish unterscheidet die Kampagnen am Link, nicht am Hostnamen, daher können mehrere Landing-Page-Domains dasselbe Ziel nutzen."
+        "phish_manual_desc": "Es ist kein Phishing-Hostname gesetzt, das Modul veröffentlicht dafür keine Route. Gehe in cluster-admin auf Einstellungen > HTTP-Routen > Route erstellen: Host = dein Landing-Page-FQDN, URL (Backend-Ziel) = {target}, und Let's-Encrypt-Zertifikat anfordern ankreuzen. Beliebig oft wiederholen -- GoPhish unterscheidet die Kampagnen am Link, nicht am Hostnamen, daher teilen sich alle Domains dieses eine Ziel.",
+        "phish_target_ref": "Backend-Ziel für eine selbst angelegte Route (Feld leer lassen, um es zu nutzen):"
     },
     "about": {
         "title": "Über"

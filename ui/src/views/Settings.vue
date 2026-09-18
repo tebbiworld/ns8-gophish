@@ -60,6 +60,10 @@
             <h4 class="section">{{ $t("settings.hosts_section") }}</h4>
             <cv-text-input :label="$t('settings.admin_host')" v-model.trim="admin_host" :placeholder="$t('settings.admin_host_placeholder')" :helper-text="$t('settings.admin_host_helper')" :disabled="busy" :invalid-message="$t(error.admin_host)" ref="admin_host" class="field"></cv-text-input>
             <cv-text-input :label="$t('settings.phish_host')" v-model.trim="phish_host" :placeholder="$t('settings.phish_host_placeholder')" :helper-text="$t('settings.phish_host_helper')" :disabled="busy" :invalid-message="$t(error.phish_host)" ref="phish_host" class="field"></cv-text-input>
+            <div v-if="phish_target" class="bx--form__helper-text field-ref">
+              {{ $t("settings.phish_target_ref", { target: phish_target }) }}
+              <code>{{ phish_target }}</code>
+            </div>
             <cv-toggle value="letsEncrypt" :label="$t('settings.lets_encrypt')" v-model="lets_encrypt" :disabled="busy" class="toggle">
               <template slot="text-left">{{ $t("settings.disabled") }}</template>
               <template slot="text-right">{{ $t("settings.enabled") }}</template>
@@ -251,5 +255,7 @@ export default {
 .toggle { margin-top: $spacing-06; }
 .info-tile { margin-top: $spacing-06; }
 .links { margin-top: $spacing-04; }
+.field-ref { margin-top: $spacing-03; }
+.field-ref code { user-select: all; }
 .section { margin-top: $spacing-07; margin-bottom: $spacing-03; }
 </style>

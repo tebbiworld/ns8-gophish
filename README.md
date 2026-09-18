@@ -54,8 +54,15 @@ Internet-facing one. The module then publishes the phishing port on the node's
 WireGuard IP and the Settings page shows the target, e.g.
 `http://10.5.5.1:20012`.
 
-Create one or more routes in Traefik pointing at that target, each with its own
-host name and Let's Encrypt certificate. Same-node and cross-node both work: the
+In cluster-admin open **Settings → HTTP routes → Create route** and set:
+
+| Field | Value |
+| --- | --- |
+| Host | your landing-page FQDN (e.g. `promo-login.example.org`) |
+| URL (backend target) | the target the module shows, e.g. `http://10.5.5.1:20012` |
+| Request Let's Encrypt certificate | on |
+
+Repeat for as many landing-page domains as you like. Same-node and cross-node both work: the
 port is reachable from any node's Traefik over the trusted cluster mesh
 (`10.5.5.0/24`), but never on the public interface. GoPhish tells the campaigns
 apart by the `rid` in the link, not by the host name, so every domain you route
