@@ -57,13 +57,8 @@
           />
 
           <cv-form @submit.prevent="configureModule">
-            <h4 class="section">{{ $t("settings.hosts_section") }}</h4>
-            <cv-text-input :label="$t('settings.admin_host')" v-model.trim="admin_host" :placeholder="$t('settings.admin_host_placeholder')" :helper-text="$t('settings.admin_host_helper')" :disabled="busy" :invalid-message="$t(error.admin_host)" ref="admin_host" class="field"></cv-text-input>
-            <cv-text-input :label="$t('settings.phish_host')" v-model.trim="phish_host" :placeholder="$t('settings.phish_host_placeholder')" :helper-text="$t('settings.phish_host_helper')" :disabled="busy" :invalid-message="$t(error.phish_host)" ref="phish_host" class="field"></cv-text-input>
-            <div v-if="phish_target" class="bx--form__helper-text field-ref">
-              {{ $t("settings.phish_target_ref", { target: phish_target }) }}
-              <code>{{ phish_target }}</code>
-            </div>
+            <h4 class="section">{{ $t("settings.admin_section") }}</h4>
+            <cv-text-input :label="''" v-model.trim="admin_host" :placeholder="$t('settings.admin_host_placeholder')" :helper-text="$t('settings.admin_host_helper')" :disabled="busy" :invalid-message="$t(error.admin_host)" ref="admin_host" class="field"></cv-text-input>
             <cv-toggle value="letsEncrypt" :label="$t('settings.lets_encrypt')" v-model="lets_encrypt" :disabled="busy" class="toggle">
               <template slot="text-left">{{ $t("settings.disabled") }}</template>
               <template slot="text-right">{{ $t("settings.enabled") }}</template>
@@ -72,6 +67,13 @@
               <template slot="text-left">{{ $t("settings.disabled") }}</template>
               <template slot="text-right">{{ $t("settings.enabled") }}</template>
             </cv-toggle>
+
+            <h4 class="section">{{ $t("settings.phish_section") }}</h4>
+            <p v-if="phish_target" class="target-lead">
+              {{ $t("settings.phish_target_ref") }}
+              <br /><code class="target-code">{{ phish_target }}</code>
+            </p>
+            <cv-text-input :label="''" v-model.trim="phish_host" :placeholder="$t('settings.phish_host_placeholder')" :helper-text="$t('settings.phish_host_helper')" :disabled="busy" :invalid-message="$t(error.phish_host)" ref="phish_host" class="field"></cv-text-input>
 
             <h4 class="section">{{ $t("settings.options_section") }}</h4>
             <cv-text-input :label="$t('settings.contact_address')" v-model.trim="contact_address" :placeholder="$t('settings.contact_address_placeholder')" :helper-text="$t('settings.contact_address_helper')" :disabled="busy" class="field"></cv-text-input>
@@ -255,7 +257,7 @@ export default {
 .toggle { margin-top: $spacing-06; }
 .info-tile { margin-top: $spacing-06; }
 .links { margin-top: $spacing-04; }
-.field-ref { margin-top: $spacing-03; }
-.field-ref code { user-select: all; }
+.target-lead { margin-top: $spacing-03; margin-bottom: $spacing-05; font-size: .875rem; line-height: 1.4; }
+.target-code { user-select: all; font-weight: 600; font-size: 1rem; }
 .section { margin-top: $spacing-07; margin-bottom: $spacing-03; }
 </style>

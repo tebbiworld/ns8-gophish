@@ -38,7 +38,7 @@
         "admin_host_helper": "FQDN of the admin interface (web UI and REST API). Published through Traefik, TLS terminated by Traefik.",
         "phish_host": "Phishing host name",
         "phish_host_placeholder": "mail-check.example.org",
-        "phish_host_helper": "Optional. FQDN under which the module publishes the phishing landing pages through its own Traefik route. Leave empty to route the phishing port yourself in Traefik, with one or more FQDNs each getting its own certificate. Must differ from the admin host.",
+        "phish_host_helper": "Optional: an FQDN under which the module publishes the landing pages through its own Traefik route. Leave empty to route the target above yourself, with one or more FQDNs each getting its own certificate. Must differ from the admin host.",
         "lets_encrypt": "Let's Encrypt certificates",
         "http2https": "HTTP to HTTPS redirection",
         "options_section": "Options",
@@ -50,7 +50,9 @@
         "domain_already_used_in_traefik": "Host name already used by another application",
         "phish_manual_title": "Phishing route is yours to create",
         "phish_manual_desc": "No phishing host name is set, so the module does not publish a route for it. In cluster-admin go to Settings > HTTP routes > Create route: set Host to your landing-page FQDN, set URL (backend target) to {target}, and tick Request Let's Encrypt certificate. Repeat for as many domains as you like -- GoPhish tells the campaigns apart by the link, not the host name, so they all share this one target.",
-        "phish_target_ref": "Backend target for a route you create yourself (leave the field empty to use it):"
+        "phish_target_ref": "Backend target for a route you create yourself (leave the field empty to use it):",
+        "admin_section": "Admin host name",
+        "phish_section": "Phishing host name"
     },
     "about": {
         "title": "About"
