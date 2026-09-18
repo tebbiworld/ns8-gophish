@@ -11,7 +11,7 @@ GoPhish is a community application from the [[ns8:tebbiworld_repository|tebbiwor
 =====What it does=====
   * one rootless container running ''gophish-app'', built by the module from the official GoPhish release ZIP (no Docker Hub image)
   * two Traefik routes, each with its own FQDN: **admin host** → admin server (web UI + REST API, container port 3333), **phishing host** → phishing server (landing pages, container port 80)
-  * TLS terminated by Traefik; both servers run plain HTTP inside the container (''use_tls=false''); ''trusted_origins'' is set to ''https://<admin_host>'' so the admin server accepts requests through the reverse proxy
+  * TLS terminated by Traefik; both servers run plain HTTP inside the container (''use_tls=false''); ''trusted_origins'' is set to ''%%https://<admin_host>%%'' so the admin server accepts requests through the reverse proxy
   * SQLite database (''gophish.db'') and ''config.json'' in a persistent volume, regenerated from the module parameters at every start
   * NS8 backup of settings and the data volume; full restore
 
