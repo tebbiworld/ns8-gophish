@@ -10,7 +10,7 @@
 #
 #   admin_server  0.0.0.0:3333  use_tls=false   (TLS terminated by Traefik)
 #   phish_server  0.0.0.0:80    use_tls=false   (TLS terminated by Traefik)
-#   trusted_origins = [ https://<admin_host> ]  so the admin server's Origin
+#   trusted_origins = [ <admin_host> ]  (bare host, no scheme: gorilla/csrf
 #                     check accepts requests coming through the reverse proxy
 #   db_name sqlite3, db_path <volume>/gophish.db, migrations under ./db (image)
 
@@ -31,7 +31,7 @@ fi
 jq -n \
     --arg dbpath "$data/gophish.db" \
     --arg contact "$contact" \
-    --arg origin "https://${admin_host}" \
+    --arg origin "${admin_host}" \
     '{
         admin_server: {
             listen_url: "0.0.0.0:3333",
@@ -54,7 +54,7 @@ jq -n \
     }' > "$data/config.json.tmp"
 mv "$data/config.json.tmp" "$data/config.json"
 
-echo "gophish ${GOPHISH_VERSION:-?} starting: admin 0.0.0.0:3333, phish 0.0.0.0:80, db $data/gophish.db, trusted origin https://${admin_host}" >&2
+echo "gophish ${GOPHISH_VERSION:-?} starting: admin 0.0.0.0:3333, phish 0.0.0.0:80, db $data/gophish.db, trusted origin ${admin_host}" >&2
 # working directory stays /opt/gophish so migrations_prefix (db/db_), static/
 # and templates/ resolve; the database and config live in the volume.
 exec ./gophish --config "$data/config.json"

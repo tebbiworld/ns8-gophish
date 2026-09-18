@@ -2,6 +2,15 @@
 
 ## 1.1.0 — 2026-09-18
 
+- **Fix admin login "Forbidden - referer invalid" behind the proxy.** GoPhish
+  passes `trusted_origins` straight to gorilla/csrf, whose referer check
+  compares the bare `Referer` host, so the value must be the host name
+  (`gophish-admin.example.org`), not a URL with a scheme. The entrypoint now
+  writes the bare admin host. The old `https://…` value only worked where the
+  proxy made GoPhish see the request as plain HTTP (e.g. some cross-node
+  setups), which skipped the check; a same-node HTTPS route triggered it and
+  rejected every login.
+
 - The **phishing host name is now optional**. Leave it empty and the module no
   longer creates a Traefik route for the phishing server; instead it publishes
   the phishing port on the node's WireGuard IP and shows the target
