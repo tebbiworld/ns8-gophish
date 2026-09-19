@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.2 — 2026-09-19
+
+Alignment with the NethServer module conventions (NethServer/agents skills).
+
+### Fixed
+
+- `restore-module` now passes every setting to `configure-module`: the Let's Encrypt choice of the original instance was lost on restore.
+
+### Added
+
+- Robot Framework tests (install, update from the previous release, backup and restore) run on real NS8 nodes through `stephdl/ns8-ci-actions`.
+
+Secrets: nothing to move, this module stores no password in its environment.
+
 ## 1.1.1 — 2026-09-18
 
 - Fix the update path: applying an update now restarts the container so it
