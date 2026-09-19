@@ -15,5 +15,5 @@ import agent
 
 request = json.load(sys.stdin)
 env = request["environment"]
-keep = ["GOPHISH_ADMIN_HOST", "GOPHISH_PHISH_HOST", "GOPHISH_CONTACT_ADDRESS", "TRAEFIK_ADMIN_HTTP2HTTPS"]
+keep = ["GOPHISH_ADMIN_HOST", "GOPHISH_PHISH_HOST", "GOPHISH_CONTACT_ADDRESS", "TRAEFIK_ADMIN_HTTP2HTTPS", "TRAEFIK_LETS_ENCRYPT"]
 agent.mset_env({k: env[k] for k in keep if k in env})

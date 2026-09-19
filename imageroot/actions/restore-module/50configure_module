@@ -10,16 +10,31 @@
 # restored gophish-data volume (config.json + database).
 
 import os
+import sys
 
 import agent
 import agent.tasks
 
 env = os.environ
+if not env.get("GOPHISH_ADMIN_HOST"):
+    # The original instance was backed up before it was ever configured: there
+    # is nothing to re-apply, and configure-module requires a host name.
+    print(agent.SD_NOTICE + "no host name in the restored settings: configure the module from the UI", file=sys.stderr)
+    sys.exit(0)
+
 data = {
     "admin_host": env.get("GOPHISH_ADMIN_HOST", ""),
     "phish_host": env.get("GOPHISH_PHISH_HOST", ""),
     "contact_address": env.get("GOPHISH_CONTACT_ADDRESS", ""),
     "http2https": env.get("TRAEFIK_ADMIN_HTTP2HTTPS", "True") == "True",
+    "lets_encrypt": env.get("TRAEFIK_LETS_ENCRYPT", "False") == "True",
 }
+if "TRAEFIK_LETS_ENCRYPT" not in env:
+    # A backup taken with a module version that did not record the setting: say
+    # so instead of silently asserting "off". The route is created without a
+    # certificate request; enable Let's Encrypt again in the settings.
+    data.pop("lets_encrypt", None)
+    print(agent.SD_WARNING + "the backup does not tell whether Let's Encrypt was enabled: the route is restored without it", file=sys.stderr)
+
 response = agent.tasks.run(agent_id=env["AGENT_ID"], action="configure-module", data=data)
 agent.assert_exp(response["exit_code"] == 0, "The configure-module subtask failed!")
