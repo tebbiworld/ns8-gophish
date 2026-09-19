@@ -55,6 +55,8 @@ agent.mset_env({
     "GOPHISH_CONTACT_ADDRESS": contact,
     "GOPHISH_PHISH_BIND": phish_bind,
     "TRAEFIK_ADMIN_HTTP2HTTPS": "True" if data.get("http2https", True) else "False",
+    # kept so restore-module can re-create the routes with the same setting
+    **({"TRAEFIK_LETS_ENCRYPT": "True" if data["lets_encrypt"] else "False"} if "lets_encrypt" in data else {}),
 })
 
 # Container env file (--env-file). Values are written one KEY=VALUE per line;
