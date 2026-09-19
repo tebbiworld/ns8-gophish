@@ -16,7 +16,7 @@ Secrets: nothing to move, this module stores no password in its environment.
 
 ### Platform integration
 
-- **Clone and move.** New `clone-module` step (a link to the restore step): a cloned or moved instance gets its route and settings back instead of coming up unconfigured.
+- **Clone and move.** New `clone-module` step (a link to the restore step): a cloned or moved instance gets its route and settings back instead of coming up unconfigured. The settings are read from the source instance, including those a new instance starts with a default for.
 - The software centre shows the upstream terms before installation (`terms_url`); release notes are linked (`relnotes_url`).
 
 ## 1.1.1 — 2026-09-18
