@@ -14,6 +14,11 @@ Alignment with the NethServer module conventions (NethServer/agents skills).
 
 Secrets: nothing to move, this module stores no password in its environment.
 
+### Platform integration
+
+- **Clone and move.** New `clone-module` step (a link to the restore step): a cloned or moved instance gets its route and settings back instead of coming up unconfigured.
+- The software centre shows the upstream terms before installation (`terms_url`); release notes are linked (`relnotes_url`).
+
 ## 1.1.1 — 2026-09-18
 
 - Fix the update path: applying an update now restarts the container so it
