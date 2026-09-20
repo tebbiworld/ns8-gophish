@@ -16,7 +16,9 @@
   "docs": {
     "documentation_url": "https://docs.getgophish.com/",
     "bug_url": "https://github.com/tebbiworld/ns8-gophish/issues",
-    "code_url": "https://github.com/tebbiworld/ns8-gophish"
+    "code_url": "https://github.com/tebbiworld/ns8-gophish",
+    "relnotes_url": "https://github.com/tebbiworld/ns8-gophish/releases",
+    "terms_url": "https://github.com/tebbiworld/ns8-gophish#readme"
   },
   "source": "ghcr.io/tebbiworld/gophish"
 }
